@@ -6,7 +6,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <conio.h>
-#define N 5
+#define N 5 //车库总量
 #define HEAD1 "----------欢迎使用停车场管理系统----------\n"
 #define HEAD2 "|--------请输入下列选项代码并回车--------|\n"
 #define MENU1 "\n|1.新车入库登记                          |\n\n"
@@ -46,40 +46,60 @@ main(void)
 			printf("请输入正确的选项后回车:");
 			scanf("%d",&operate);
 			if(operate>-1&&operate<7)
-			break;
+			{
+				break;
+			}
 			else
-			printf("输入错误！\n"); 
+			{
+				printf("输入错误！\n");
+			}
 		}
 		//输入正确执行对应操作 
 		switch(operate)
 		{
 			case 1:
+				{
 				position--;
-				ruku(File);
+				ruku(File, position);
 				break;
+				}
 			case 2:
+				{
 				position++;
 				chuku(File);
 				break;
+				}
 			case 3:
+				{
 				SearchNumber(File);
 				break;
+				}
 			case 4:
+				{
 				positionElse(position);
 				break;
+				}
 			case 5:
+				{
 				logout(File);		
 				break;
+				}
 			case 6:
+				{
 				system("cls");
 				exit(0);
+				}
 			default:
+				{
 				printf("选择错误，请重新选择\n");
+				}
 		}
 		printf("\n");
 		printf("按任意键返回主菜单!");
-		getch();
-		system("cls");//清屏	
+			{
+				getch();
+				system("cls");//清屏	
+		}
 	}
 	while(operate != 0);
 	return 1;
@@ -88,7 +108,7 @@ main(void)
 
 //以下是函数库
 
-int ruku(char *File)//新车入库登记
+int ruku(char *File, int position)//新车入库登记
 {
 	int m;//位数侦测
 	car temp,temp0;
@@ -98,6 +118,12 @@ int ruku(char *File)//新车入库登记
     time (&t);//获取时间
     lt = localtime (&t);//转为时间结构
 
+	if(position<0)
+		{
+			printf("无可用车位!");
+			getch();
+			return 0;
+		}
 	if(fp==NULL)
 	{
 		printf("无法打开文件！请检查存储权限！\n",File);
@@ -105,12 +131,12 @@ int ruku(char *File)//新车入库登记
 	}
 		Repeat:printf("请输入车牌号码(5位数字):\n");	
 	    m=scanf("%05d",&temp.id);
-	   if(m<=0||m>99999)
-	   {
+	    if(m<=0||m>99999)
+		{
 			printf("您输入的车牌号码有误，请检查格式!\n");
 			fflush(stdin);//清空chche 
-		goto Repeat;
-	   }
+		 goto Repeat;
+		}
 		fseek(fp,0,SEEK_SET);//移动指针到文件开头
 		while(fread(&temp0,sizeof(car),1,fp))
 		{
@@ -130,7 +156,7 @@ int ruku(char *File)//新车入库登记
 			printf("入库失败！\n向文件%s写入信息失败！\n",File);
 			return;
 		}
-			printf( "车牌号为%d的车辆于%04d-%02d-%02d %02d:%02d:%02d入库成功！\n向文件%s写入信息成功！\n",temp.id,lt->tm_year+1900, lt->tm_mon, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec,File);
+			printf( "车牌号为%d的车辆于%04d-%02d-%02d %02d:%02d:%02d入库成功！\n向文件%s写入信息成功！\n",temp.id,lt->tm_year+1900, ((lt->tm_mon)+1), lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec,File);
 			fclose(fp);
 			return 0;
 }
@@ -164,13 +190,13 @@ int chuku(char *File)//出库并计费
 		if(s[a].id==del)
 		{
 			s[a].totalTime=lt->tm_sec-s[a].inTime[2];
-			s[a].sum=5+abs(lt->tm_hour-s[a].inTime[0])*3600+abs(lt->tm_min-s[a].inTime[1])*60+abs(lt->tm_sec-s[a].inTime[2]);
-			//总金额计算公式，入场费5元，每秒1元，不足1秒按1秒计算
+			s[a].sum=5+abs(lt->tm_hour-s[a].inTime[0])*3600+abs(lt->tm_min-s[a].inTime[1])*60;//+abs(lt->tm_sec-s[a].inTime[2]);
+			//总金额计算公式，入场费5元，每分钟1元，不足1分钟按1d分钟计算
 			printf("下面的车牌号为%d的车辆信息:\n",del);
 			printf("车牌号：%d\n",s[a].id);
 			printf("入库时间：%02d:%02d:%02d\n",abs(s[a].inTime[0]),abs(s[a].inTime[1]),abs(s[a].inTime[2]));
-			printf("出库时间：%04d-%02d-%02d %02d:%02d:%02d\n",lt->tm_year+1900, lt->tm_mon, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
-			printf("已停时长(精确到秒)：%d 秒\n",abs(lt->tm_hour-s[a].inTime[0])*3600+abs(lt->tm_min-s[a].inTime[1])*60+abs(lt->tm_sec-s[a].inTime[2]));
+			printf("出库时间：%04d-%02d-%02d %02d:%02d:%02d\n",lt->tm_year+1900, ((lt->tm_mon)+1), lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
+			printf("已停时长(精确到分钟)：%d 分钟\n",abs(lt->tm_hour-s[a].inTime[0])*3600+abs(lt->tm_min-s[a].inTime[1])*60);//+abs(lt->tm_sec-s[a].inTime[2]));
 			printf("应缴金额：%d 元。",s[a].sum);
 			printf("缴费成功请按任意键!");
 			a-=1;
@@ -251,7 +277,7 @@ int logout(char *File)//输出文件
 		system("cls");
 		printf(" 车号     进场时间     已停时间      总价\n");
 	while(fread(&S,sizeof(car),1,fp))//从文件读入一个结构体大小的空间给S 
-		printf(" %d    %02d:%02d:%02d     %02d:%02d:%02d      %d 元\n",S.id,S.inTime[0],S.inTime[1],S.inTime[2], abs(lt->tm_hour-S.inTime[0]),abs(lt->tm_min-S.inTime[1]),abs(lt->tm_sec-S.inTime[2]),5+abs(lt->tm_hour-S.inTime[0])*3600+abs(lt->tm_min-S.inTime[1])*60+abs(lt->tm_sec-S.inTime[2]));
+		printf(" %d    %02d:%02d:%02d      %02d:%02d        %d 元\n",S.id,S.inTime[0],S.inTime[1],S.inTime[2], abs(lt->tm_hour-S.inTime[0]),abs(lt->tm_min-S.inTime[1]),5+abs(lt->tm_hour-S.inTime[0])*60+abs(lt->tm_min-S.inTime[1])*1);
 		printf("\n");
 		fclose(fp);
 }
